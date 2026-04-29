@@ -35,7 +35,7 @@ const TRAFFICKING_HOTLINES = [
   { name: 'NIWAP (Immigration & Women Advocacy)', phone: '1-202-274-4457', languages: ['en', 'es'], description: 'Immigration relief for trafficking survivors' },
 ];
 
-export function generateSafetyPlan(needs: SurvivorSafetyPlanSchema['shape']['immediateNeeds']['_output']): SurvivorSafetyPlan {
+export function generateSafetyPlan(needs: (typeof SurvivorSafetyPlanSchema)['shape']['immediateNeeds']['_output']): SurvivorSafetyPlan {
   const steps: SurvivorSafetyPlan['safetySteps'] = [];
   let stepNum = 1;
 
