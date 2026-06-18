@@ -61,7 +61,58 @@ const CONTROL_INDICATORS = [
   { pattern: /\b(new\s*number|number\s*change|text\s*this\s*number)\b/i, indicator: 'Phone number rotation — burner phone pattern', weight: 6 },
 ];
 
-export function analyzeAd(ad: ClassifiedAd): TraffickingIndicator {
+export function linkAds(
+  target: ClassifiedAd,
+  corpus: ClassifiedAd[]
+): TraffickingIndicator['linkedAds'] {
+  const linked: TraffickingIndicator['linkedAds'] = [];
+
+  for (const candidate of corpus) {
+    if (candidate.id === target.id) continue;
+
+    const sharedPhones = target.phoneNumbers.filter((p) =>
+      candidate.phoneNumbers.some((cp) => p.replace(/\D/g, '') === cp.replace(/\D/g, ''))
+    );
+    if (sharedPhones.length > 0) {
+      linked.push({
+        adId: candidate.id,
+        linkType: 'same_phone',
+        confidence: Math.min(0.95, 0.6 + sharedPhones.length * 0.1),
+      });
+      continue;
+    }
+
+    if (target.poster?.username && candidate.poster?.username === target.poster.username) {
+      linked.push({ adId: candidate.id, linkType: 'same_poster', confidence: 0.75 });
+      continue;
+    }
+
+    const targetHashes = new Set((target.images ?? []).map((i) => i.hash).filter(Boolean));
+    const sharedImage = (candidate.images ?? []).some((i) => i.hash && targetHashes.has(i.hash));
+    if (sharedImage) {
+      linked.push({ adId: candidate.id, linkType: 'same_image', confidence: 0.85 });
+      continue;
+    }
+
+    const similarity = textSimilarity(`${target.title} ${target.body}`, `${candidate.title} ${candidate.body}`);
+    if (similarity > 0.7) {
+      linked.push({ adId: candidate.id, linkType: 'similar_text', confidence: similarity });
+    }
+  }
+
+  return linked.sort((a, b) => b.confidence - a.confidence).slice(0, 10);
+}
+
+function textSimilarity(a: string, b: string): number {
+  const wordsA = new Set(a.toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+  const wordsB = new Set(b.toLowerCase().split(/\W+/).filter((w) => w.length > 3));
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) if (wordsB.has(w)) overlap++;
+  return overlap / Math.max(wordsA.size, wordsB.size);
+}
+
+export function analyzeAd(ad: ClassifiedAd, corpus: ClassifiedAd[] = []): TraffickingIndicator {
   const indicators: TraffickingIndicator['indicators'] = [];
   const fullText = `${ad.title} ${ad.body}`.toLowerCase();
 
@@ -94,9 +145,11 @@ export function analyzeAd(ad: ClassifiedAd): TraffickingIndicator {
     : riskScore >= 50 ? 'priority_investigation' as const
     : riskScore >= 25 ? 'flag_for_review' as const : 'monitor' as const;
 
+  const linkedAds = linkAds(ad, corpus);
+
   return {
     adId: ad.id, analyzedAt: new Date().toISOString(), riskScore, riskLevel,
-    indicators, linkedAds: [], recommendedAction,
+    indicators, linkedAds, recommendedAction,
     referralInfo: riskScore >= 50 ? { hotline: 'National Human Trafficking Hotline: 1-888-373-7888', agency: 'Refer to local FBI field office or ICE HSI' } : undefined,
   };
 }

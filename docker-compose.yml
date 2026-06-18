@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3847:3847"
+    environment:
+      - PORT=3847
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # Optional: connect to your Supabase project externally
+  # Local Postgres for development only:
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_PASSWORD: devpassword
+  #     POSTGRES_DB: traffic_watch
+  #   ports:
+  #     - "5432:5432"

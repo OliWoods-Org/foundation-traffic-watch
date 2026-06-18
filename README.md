@@ -66,8 +66,25 @@ Human trafficking detection and survivor support. 27.6M victims globally. Ad ana
 git clone https://github.com/OliWoods-Org/foundation-traffic-watch.git
 cd foundation-traffic-watch
 npm install
-npm run dev
+npm run dev        # API server on :3847
+npm test           # Run test suite
+npm run mcp        # Start MCP server for Claude/Grok
 ```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/api/v1/ads/analyze` | POST | Analyze classified ad |
+| `/api/v1/ads/link` | POST | Cross-link related ads |
+| `/api/v1/safety/plan` | POST | Generate survivor safety plan |
+| `/api/v1/tips/triage` | POST | Triage anonymous tip |
+| `/api/v1/analytics/report` | GET | Impact metrics report |
+
+### Mobile (MAMA iOS)
+
+Trafficking Watch is integrated in `mama-ios` at `/products/traffic-watch` with on-device ad analysis, safety plans, and quick-exit.
 
 ## Tech Stack
 

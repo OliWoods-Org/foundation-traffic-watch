@@ -1,15 +1,30 @@
 {
   "name": "foundation-traffic-watch",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Human trafficking detection and survivor support. Ad analysis. Cross-platform linking.",
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./features": "./dist/features/index.js"
+  },
+  "bin": {
+    "traffic-watch": "./dist/index.js"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
     "build": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mcp": "tsx mcp/server.ts",
+    "lint": "tsc --noEmit",
+    "issues": "bash scripts/create-github-issues.sh"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "hono": "^4.6.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
